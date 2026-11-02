@@ -1269,3 +1269,45 @@ Decision: Keep caller tracing open. Do not infer runtime or call-site behavior f
 Next action:
 - Re-run the same grep from a shell with access to the Odoo application container, or inspect the mounted source tree directly if available.
 
+
+
+## Phase 2 — Step 2.24 serialization and lead-time caller locations (2026-11-02)
+
+Research question: Which installed stock-model methods call procurement serialization and lead-time accumulation?
+
+Command:
+```bash
+MSYS_NO_PATHCONV=1 docker exec odoo19-research-app grep -R -n -E '_get_lead_days|_serialize_procurement_values' /usr/lib/python3/dist-packages/odoo/addons/stock/models
+```
+
+Observed output:
+- `stock_rule.py:372` stores `self._serialize_procurement_values(values)` in the stock-move value dictionary.
+- `stock_rule.py:389` defines `_serialize_procurement_values()`.
+- `stock_rule.py:412` defines `_get_lead_days()`.
+- `product.py:743` calls `rules.with_context(bypass_delay_description=True)._get_lead_days(self)`.
+- `stock_orderpoint.py:184-185` obtains orderpoint lead-day values, then calls `orderpoint.rule_ids._get_lead_days(orderpoint.product_id, **values)`.
+- `stock_orderpoint.py:478` defines `_get_lead_days_values()`.
+- `stock_orderpoint.py:570` calls `rules.with_context(bypass_delay_description=True)._get_lead_days(product)[0]`.
+- Additional matches were compiled Python `.pyc` files; those binary matches were not treated as source evidence.
+
+Interpretation:
+- Procurement serialization is used when pull rules build stock moves, preserving procurement context in the move.
+- Lead-time accumulation feeds at least two operational paths: product-level lead-time calculation and orderpoint scheduling/deadline computation.
+- Both product and orderpoint calculation paths suppress human-readable delay descriptions, indicating a numeric scheduling use in those callers.
+- Orderpoints pass computed values into `_get_lead_days()`, so the orderpoint path can include context-dependent horizon or delay inputs.
+- This establishes callers and purpose at the location level, but not the surrounding date calculations.
+
+Uncertainty:
+- The exact use of the returned `delays` mapping in `product.py` and `stock_orderpoint.py` is not yet inspected.
+- The contents of `_get_lead_days_values()`, the role of `values`, and the interaction with orderpoint deadlines remain open.
+- No runtime scheduling behavior was tested.
+
+Risk: Read-only source inspection; no database or transaction changes. Binary cache matches were excluded from interpretation.
+
+Decision: Mark caller locations as source-inspected. Continue with the surrounding product and orderpoint methods before closing this branch.
+
+Next command:
+```bash
+MSYS_NO_PATHCONV=1 docker exec odoo19-research-app sed -n '720,755p;165,195p;465,490p;550,580p' /usr/lib/python3/dist-packages/odoo/addons/stock/models/product.py /usr/lib/python3/dist-packages/odoo/addons/stock/models/stock_orderpoint.py
+```
+
