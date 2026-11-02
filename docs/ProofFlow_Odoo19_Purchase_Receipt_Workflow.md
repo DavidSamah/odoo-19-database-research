@@ -253,3 +253,8 @@ For inter-company transit locations, Odoo adds the customer location as an addit
 Push rules search from a destination location upward through parent locations and allow push or pull_push actions. Superuser rule domains are restricted to company-independent rules and the requested company hierarchy, with route companies included when applicable.
 
 The stock scheduler confirms automatic orderpoint procurements, assigns due confirmed or partially available moves in batches of 1000, optionally commits each batch with a new cursor, and merges duplicated quants. It runs with superuser privileges to avoid access and inter-company filtering issues. Scheduler failure and batch-commit behavior remain runtime validation items.
+
+
+## Pull-action implementation
+
+The stock-rule pull action is defined in stock/models/stock_rule.py at line 290. Its grouping, move creation, and chained-route effects remain under inspection.
