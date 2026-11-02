@@ -246,3 +246,10 @@ Odoo resolves stock rules in layers:
 Candidate rules are ordered by route_sequence and sequence. Resolution uses the current destination location first, then parent locations up to the root. Warehouse-specific rules are preferred, with company-independent rules as fallback. Product routes receive preference during route extraction.
 
 For inter-company transit locations, Odoo adds the customer location as an additional candidate so customer-delivery rules can serve the inter-company path without duplicating every rule. Push rules are excluded from this pull-rule domain. The final superuser company restriction and pull-action implementation remain under inspection.
+
+
+## Push fallback and scheduler behavior
+
+Push rules search from a destination location upward through parent locations and allow push or pull_push actions. Superuser rule domains are restricted to company-independent rules and the requested company hierarchy, with route companies included when applicable.
+
+The stock scheduler confirms automatic orderpoint procurements, assigns due confirmed or partially available moves in batches of 1000, optionally commits each batch with a new cursor, and merges duplicated quants. It runs with superuser privileges to avoid access and inter-company filtering issues. Scheduler failure and batch-commit behavior remain runtime validation items.
