@@ -258,3 +258,8 @@ The stock scheduler confirms automatic orderpoint procurements, assigns due conf
 ## Pull-action implementation
 
 The stock-rule pull action is defined in stock/models/stock_rule.py at line 290. Its grouping, move creation, and chained-route effects remain under inspection.
+
+
+## Pull action and move construction
+
+The pull action validates source locations, sorts procurements, converts mts_else_mto to make_to_stock, groups move creation by company, creates moves with superuser rights, and confirms them. Move values preserve dates after rule delays, UoMs, source and final locations, downstream links, routes, references, priority, orderpoints, cancellation propagation, inter-warehouse partners, and refund flags for negative quantities.
