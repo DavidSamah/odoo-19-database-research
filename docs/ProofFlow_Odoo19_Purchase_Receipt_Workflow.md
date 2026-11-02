@@ -263,3 +263,8 @@ The stock-rule pull action is defined in stock/models/stock_rule.py at line 290.
 ## Pull action and move construction
 
 The pull action validates source locations, sorts procurements, converts mts_else_mto to make_to_stock, groups move creation by company, creates moves with superuser rights, and confirms them. Move values preserve dates after rule delays, UoMs, source and final locations, downstream links, routes, references, priority, orderpoints, cancellation propagation, inter-warehouse partners, and refund flags for negative quantities.
+
+
+## Procurement serialization and lead time
+
+Procurement values are serialized for stock-move storage: recordsets become IDs, date and datetime values become strings, and other values are preserved. Lead time combines delays from pull and pull_push rules with an optional global orderpoint horizon. Context flags can bypass horizon or descriptions. The source contains a multiple-product limitation that requires runtime validation.
