@@ -268,3 +268,8 @@ The pull action validates source locations, sorts procurements, converts mts_els
 ## Procurement serialization and lead time
 
 Procurement values are serialized for stock-move storage: recordsets become IDs, date and datetime values become strings, and other values are preserved. Lead time combines delays from pull and pull_push rules with an optional global orderpoint horizon. Context flags can bypass horizon or descriptions. The source contains a multiple-product limitation that requires runtime validation.
+
+
+## Caller search environment note
+
+The planned grep for callers of `_get_lead_days()` and `_serialize_procurement_values()` could not run in the current shell because `docker` was unavailable. The detailed notebook records this as an environment limitation; no caller behavior is inferred.
