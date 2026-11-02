@@ -273,3 +273,8 @@ Procurement values are serialized for stock-move storage: recordsets become IDs,
 ## Caller search environment note
 
 The planned grep for callers of `_get_lead_days()` and `_serialize_procurement_values()` could not run in the current shell because `docker` was unavailable. The detailed notebook records this as an environment limitation; no caller behavior is inferred.
+
+
+## Lead-time caller evidence
+
+The installed source uses procurement serialization while constructing pull-rule stock moves. Lead-time accumulation is called from product lead-time calculation and from orderpoint scheduling/deadline logic. Those callers suppress descriptive delay text for numeric scheduling. Exact date calculations remain under inspection.
