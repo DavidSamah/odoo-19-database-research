@@ -1045,3 +1045,33 @@ MSYS_NO_PATHCONV=1 docker exec odoo19-research-app \
 ## GitHub synchronization checkpoint (2026-11-02)
 
 The complete temporary notebook, including all preceding evidence and this entry, is being preserved in the `DavidSamah/odoo-19-database-research` repository so future research details can be appended to the same tracked artifact.
+
+## Phase 2 — Step 2.15 procurement dispatcher location (2026-11-02)
+
+Research question: Where is the procurement dispatcher called by stock-move confirmation implemented?
+
+Command:
+```bash
+MSYS_NO_PATHCONV=1 docker exec odoo19-research-app \
+  grep -R -n -E '^    def run\\(' \
+  /usr/lib/python3/dist-packages/odoo/addons/stock/models/stock_rule.py \
+  /usr/lib/python3/dist-packages/odoo/addons/stock/models/stock_move.py
+```
+
+Observed output:
+- `stock/models/stock_rule.py:453: def run(self, procurements, raise_user_error=True)`
+
+Interpretation: The procurement dispatcher invoked by `_action_confirm()` is implemented in `stock.rule` at line 453. The location result does not establish rule selection, grouping, error handling, or downstream move creation.
+
+Uncertainty: Procurement grouping, route and warehouse rule selection, error behavior, and recursion into stock moves remain uninspected.
+
+Risk: Read-only method-location search; no database or transaction changes.
+
+Decision: Method-location discovery complete. Keep the procurement branch open until `stock.rule.run()` is inspected.
+
+Next command:
+```bash
+MSYS_NO_PATHCONV=1 docker exec odoo19-research-app \
+  sed -n '440,560p' \
+  /usr/lib/python3/dist-packages/odoo/addons/stock/models/stock_rule.py
+```
