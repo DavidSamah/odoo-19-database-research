@@ -1243,3 +1243,29 @@ Decision: Mark procurement serialization and lead-time accumulation as source-in
 
 Next command:
 MSYS_NO_PATHCONV=1 docker exec odoo19-research-app grep -R -n -E '_get_lead_days|_serialize_procurement_values' /usr/lib/python3/dist-packages/odoo/addons/stock/models
+
+
+## Phase 2 — Step 2.23 caller search unavailable in current shell (2026-11-02)
+
+Research question: Where are _get_lead_days() and _serialize_procurement_values() called in the installed stock models?
+
+Command attempted:
+```bash
+MSYS_NO_PATHCONV=1 docker exec odoo19-research-app grep -R -n -E '_get_lead_days|_serialize_procurement_values' /usr/lib/python3/dist-packages/odoo/addons/stock/models
+```
+
+Observed result:
+- The current shell returned `/bin/bash: line 1: docker: command not found`.
+- No caller locations were observed from this attempt.
+
+Interpretation: The caller search could not be executed from the current environment. The previous source conclusions about serialization and lead-time behavior remain based only on the user-provided method excerpt.
+
+Uncertainty: Call sites, call timing, and whether serialized procurement values are later deserialized remain unverified.
+
+Risk: Environment/tooling limitation only; no application or database changes were made.
+
+Decision: Keep caller tracing open. Do not infer runtime or call-site behavior from the missing command output.
+
+Next action:
+- Re-run the same grep from a shell with access to the Odoo application container, or inspect the mounted source tree directly if available.
+
