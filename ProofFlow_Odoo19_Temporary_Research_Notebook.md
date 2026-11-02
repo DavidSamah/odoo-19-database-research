@@ -1130,3 +1130,32 @@ Decision: Mark route precedence and location hierarchy resolution as source-insp
 
 Next command:
 MSYS_NO_PATHCONV=1 docker exec odoo19-research-app sed -n '650,760p' /usr/lib/python3/dist-packages/odoo/addons/stock/models/stock_rule.py
+
+## Phase 2 — Step 2.19 rule-domain restrictions, push fallback, and scheduler (2026-11-02)
+
+Research question: What company restrictions, push-rule fallback, and scheduler behavior surround procurement rule resolution?
+
+Source: User-provided continuation from stock/models/stock_rule.py covering the remainder of _get_rule_domain(), _get_push_rule(), _get_moves_to_assign_domain(), _run_scheduler_tasks(), run_scheduler(), and _get_orderpoint_domain().
+
+Observed:
+- _get_rule_domain() adds the customer location for inter-company transit resolution and excludes rules whose action is push.
+- When running as superuser with a company value, the domain allows company-independent rules and rules belonging to the requested companies or their child companies.
+- Route company IDs are added to the company restriction set when route_ids are present.
+- _get_push_rule() searches from the current destination location upward through parent locations. It accepts push and pull_push rules, applies an optional values domain, and reuses _search_rule() for route, packaging, product, category, and warehouse precedence.
+- _get_moves_to_assign_domain() selects confirmed or partially available non-zero moves for the company when their reservation date is due or their picking type reserves at confirmation.
+- _run_scheduler_tasks() computes orderpoint quantities and deadlines, confirms orderpoint procurements, searches due moves ordered by reservation date, priority, planned date, and ID, and assigns them in chunks of 1000.
+- Scheduler chunks are assigned with sudo()._action_assign(). When use_new_cursor is enabled, each chunk is committed and progress is reported.
+- The scheduler also runs quant merge tasks.
+- run_scheduler() executes scheduler tasks as superuser to avoid inter-company and access-right issues, logs exceptions, and returns an empty dictionary.
+- _get_orderpoint_domain() restricts automatic orderpoints to active products and optionally a specified company.
+
+Interpretation: Odoo separates pull-rule selection from push-rule selection and uses location-parent fallback for both. The scheduler periodically turns due confirmed moves into reservations and confirms replenishment procurements. With a new cursor, assignment progress can be committed in separate batches rather than as one transaction.
+
+Uncertainty: The exact pull action implementation, push-rule creation effects, orderpoint procurement methods, and runtime behavior under partial scheduler failure remain untested.
+
+Risk: Read-only source inspection; no database or transaction changes. Scheduler chunk commits and superuser execution require explicit operational and rollback testing.
+
+Decision: Mark the rule-domain restriction, push fallback, and scheduler source paths as inspected. Continue with _run_pull() to complete the procurement-to-move workflow.
+
+Next command:
+MSYS_NO_PATHCONV=1 docker exec odoo19-research-app grep -n -E '^    def (_run_pull|_run_buy|_run_manufacture)\\(' /usr/lib/python3/dist-packages/odoo/addons/stock/models/stock_rule.py
