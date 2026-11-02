@@ -1159,3 +1159,24 @@ Decision: Mark the rule-domain restriction, push fallback, and scheduler source 
 
 Next command:
 MSYS_NO_PATHCONV=1 docker exec odoo19-research-app grep -n -E '^    def (_run_pull|_run_buy|_run_manufacture)\\(' /usr/lib/python3/dist-packages/odoo/addons/stock/models/stock_rule.py
+
+## Phase 2 — Step 2.20 pull-action method location (2026-11-02)
+
+Research question: Where does Odoo implement the pull action that fulfils a procurement after stock-rule dispatch?
+
+Command:
+MSYS_NO_PATHCONV=1 docker exec odoo19-research-app grep -n -E '^    def (_run_pull|_run_buy|_run_manufacture)\\(' /usr/lib/python3/dist-packages/odoo/addons/stock/models/stock_rule.py
+
+Observed output:
+- stock/models/stock_rule.py:290: def _run_pull(self, procurements)
+
+Interpretation: The stock-rule pull action is implemented at line 290. The location result does not establish how it groups procurements, creates moves, or propagates routes.
+
+Uncertainty: Procurement grouping, move preparation, picking assignment, chained pull rules, push-rule interaction, and error handling remain uninspected.
+
+Risk: Read-only method-location search; no database or transaction changes.
+
+Decision: Keep the procurement branch open until _run_pull() is inspected.
+
+Next command:
+MSYS_NO_PATHCONV=1 docker exec odoo19-research-app sed -n '280,390p' /usr/lib/python3/dist-packages/odoo/addons/stock/models/stock_rule.py
