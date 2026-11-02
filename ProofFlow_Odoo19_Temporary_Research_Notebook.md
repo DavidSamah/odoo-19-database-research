@@ -1213,3 +1213,33 @@ Decision: Mark the pull action and stock-move value construction source path as 
 
 Next command:
 MSYS_NO_PATHCONV=1 docker exec odoo19-research-app sed -n '390,470p' /usr/lib/python3/dist-packages/odoo/addons/stock/models/stock_rule.py
+
+## Phase 2 — Step 2.22 procurement serialization and lead-time calculation (2026-11-02)
+
+Research question: How are procurement values stored and how are rule delays accumulated?
+
+Source: User-provided excerpt from stock/models/stock_rule.py covering _serialize_procurement_values() and _get_lead_days().
+
+Observed:
+- _serialize_procurement_values() iterates through the procurement values dictionary.
+- BaseModel values are converted to their record IDs.
+- datetime.datetime and datetime.date values are converted with isoformat().
+- Other values are preserved.
+- The method returns a new serialized dictionary for storage in stock-move procurement_values.
+- _get_lead_days() gathers delays from rules whose action is pull or pull_push and whose delay is non-zero.
+- It sums rule delays into total_delay and records a description for each delaying rule unless bypass_delay_description is present.
+- If bypass_global_horizon_days is set in context, the method returns before adding the global horizon.
+- Otherwise it reads global horizon days from stock.warehouse.orderpoint.get_horizon_days(), adds them to horizon_time, and records a Time Horizon description unless delay descriptions are bypassed.
+- The source contains a FIXME stating that multiple products are not yet supported by this method as written.
+- The supplied excerpt then re-enters the previously inspected _skip_procurement() and run() methods.
+
+Interpretation: Procurement values are made storage-safe before being embedded in stock moves, while lead time is composed from rule delays and an optional global orderpoint horizon. Context flags can suppress either descriptions or the global horizon calculation.
+
+Uncertainty: Callers of _get_lead_days(), the effect of serialized values on later procurement recursion, and multi-product lead-time behavior remain untested.
+
+Risk: Read-only source inspection; no database or transaction changes. Date serialization and lead-time bypass flags require controlled tests.
+
+Decision: Mark procurement serialization and lead-time accumulation as source-inspected. The focused purchase-to-receipt source path is now complete enough for consolidation; runtime behavior remains open.
+
+Next command:
+MSYS_NO_PATHCONV=1 docker exec odoo19-research-app grep -R -n -E '_get_lead_days|_serialize_procurement_values' /usr/lib/python3/dist-packages/odoo/addons/stock/models
