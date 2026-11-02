@@ -1102,3 +1102,31 @@ Decision: The dispatcher and initial rule-selection logic are source-inspected. 
 
 Next command:
 MSYS_NO_PATHCONV=1 docker exec odoo19-research-app sed -n '530,660p' /usr/lib/python3/dist-packages/odoo/addons/stock/models/stock_rule.py
+
+## Phase 2 — Step 2.18 rule precedence, hierarchy fallback, and inter-company routing (2026-11-02)
+
+Research question: How does Odoo resolve a stock rule across routes, warehouses, and location hierarchies?
+
+Source: User-provided continuation from stock/models/stock_rule.py covering _search_rule(), _get_rule(), _check_intercomp_location(), and the beginning of _get_rule_domain().
+
+Observed:
+- _search_rule() restricts candidate rules to the requested warehouse or company-independent rules, then searches in this order: procurement-group route IDs, packaging UoM routes, product and category routes, and warehouse routes.
+- Each search orders rules by route_sequence and sequence and takes the first match.
+- _get_rule() returns no rule when the location is empty. Otherwise it builds the location hierarchy from the requested location to its root.
+- _get_rule() builds a domain and obtains a mapping keyed by destination location and route, with warehouse-specific rule records inside each mapping.
+- Route extraction prefers product routes in its sorting, then uses the exact warehouse rule and falls back to a company-independent rule. When no warehouse is supplied, the first available warehouse mapping is used.
+- Rule resolution first tries the current location, then its parent locations until a valid rule is found.
+- For an inter-company transit location, the customer location is added as an additional candidate once, allowing inter-company fulfillment to reuse customer-delivery rules.
+- _check_intercomp_location() checks for transit locations and verifies the configured stock inter-company location.
+- _get_rule_domain() begins by including the location hierarchy, adds the customer location for inter-company resolution, and excludes push rules. Its superuser company restriction continues beyond the supplied excerpt.
+
+Interpretation: Rule resolution is deterministic and layered. Odoo gives precedence to explicit procurement routes, then packaging, product/category, and warehouse routes, while also allowing location-parent fallback. Inter-company transit uses a deliberate customer-location alias to avoid duplicating delivery rules.
+
+Uncertainty: The remaining superuser/company domain restriction, the complete _get_rule() domain, and the _run_pull() action remain uninspected.
+
+Risk: Read-only source inspection; no database or transaction changes. Route precedence, inter-company rules, and multi-company access require controlled tests.
+
+Decision: Mark route precedence and location hierarchy resolution as source-inspected. Keep the procurement branch open for the remainder of _get_rule_domain() and the pull action.
+
+Next command:
+MSYS_NO_PATHCONV=1 docker exec odoo19-research-app sed -n '650,760p' /usr/lib/python3/dist-packages/odoo/addons/stock/models/stock_rule.py
