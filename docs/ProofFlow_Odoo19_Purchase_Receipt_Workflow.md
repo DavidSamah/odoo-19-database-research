@@ -233,3 +233,16 @@ Purchase-line stock pricing calls tax computation and currency conversion before
 ## Research rule
 
 Source evidence is recorded separately from runtime observations. No implementation decision should be marked production-safe until the relevant controlled transaction has been executed and its database state verified.
+
+## Procurement rule resolution and inter-company routing
+
+Odoo resolves stock rules in layers:
+
+- explicit procurement-group route IDs;
+- packaging UoM routes;
+- product and category routes;
+- warehouse routes.
+
+Candidate rules are ordered by route_sequence and sequence. Resolution uses the current destination location first, then parent locations up to the root. Warehouse-specific rules are preferred, with company-independent rules as fallback. Product routes receive preference during route extraction.
+
+For inter-company transit locations, Odoo adds the customer location as an additional candidate so customer-delivery rules can serve the inter-company path without duplicating every rule. Push rules are excluded from this pull-rule domain. The final superuser company restriction and pull-action implementation remain under inspection.
