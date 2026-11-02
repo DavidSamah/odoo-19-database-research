@@ -1180,3 +1180,36 @@ Decision: Keep the procurement branch open until _run_pull() is inspected.
 
 Next command:
 MSYS_NO_PATHCONV=1 docker exec odoo19-research-app sed -n '280,390p' /usr/lib/python3/dist-packages/odoo/addons/stock/models/stock_rule.py
+
+## Phase 2 — Step 2.21 pull action and procurement-to-move construction (2026-11-02)
+
+Research question: How does _run_pull() convert procurement requests into confirmed stock moves?
+
+Source: User-provided excerpt from stock/models/stock_rule.py covering _run_pull() and _get_stock_move_values().
+
+Observed:
+- _run_pull() rejects any rule without a source location by raising ProcurementException.
+- Procurements are sorted by whether their quantity is positive before move values are prepared.
+- The mts_else_mto rule method is converted to make_to_stock for the created move.
+- Each procurement is converted through rule._get_stock_move_values() and grouped by procurement company.
+- Stock moves are created with sudo() and the relevant company context, then confirmed through _action_confirm(). The method returns True.
+- _get_stock_move_values() subtracts the rule delay from the planned date and optional deadline.
+- The move partner comes from the rule's partner address or procurement values.
+- Downstream move links are carried into move_dest_ids.
+- For inter-warehouse transfers ending at the company's internal transit location, partner information can be derived from the destination warehouse and the destination move is assigned the source warehouse or company partner.
+- Negative procurement quantities set values['to_refund'] = True.
+- Created move values include company, product, UoM, quantity, partner, source and final locations, destination links, rule, references, procurement method, origin, picking type, serialized procurement values, routes, attributes, warehouse, dates, cancellation propagation, priority, and orderpoint.
+- A rule can override the destination location through location_dest_from_rule.
+- Custom move fields returned by _get_custom_move_fields() are copied from procurement values when present.
+- The supplied excerpt ends at the beginning of _serialize_procurement_values().
+
+Interpretation: The pull action turns route-selected procurements into company-batched stock moves, then re-enters the stock-move confirmation lifecycle. It preserves downstream relationships, route context, dates, returns, warehouse partners, cancellation behavior, and custom procurement data.
+
+Uncertainty: The exact procurement-value serialization, downstream _action_confirm() recursion, inter-warehouse runtime behavior, and buy or manufacture action paths remain untested.
+
+Risk: Read-only source inspection; no database or transaction changes. Superuser move creation and negative-quantity refund behavior require controlled tests.
+
+Decision: Mark the pull action and stock-move value construction source path as inspected for the purchase receipt workflow. Keep procurement serialization open until the remaining helper is read.
+
+Next command:
+MSYS_NO_PATHCONV=1 docker exec odoo19-research-app sed -n '390,470p' /usr/lib/python3/dist-packages/odoo/addons/stock/models/stock_rule.py
