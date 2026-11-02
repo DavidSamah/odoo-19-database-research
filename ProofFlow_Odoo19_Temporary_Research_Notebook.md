@@ -1075,3 +1075,30 @@ MSYS_NO_PATHCONV=1 docker exec odoo19-research-app \
   sed -n '440,560p' \
   /usr/lib/python3/dist-packages/odoo/addons/stock/models/stock_rule.py
 ```
+
+## Phase 2 — Step 2.16 procurement dispatch and rule selection (2026-11-02)
+
+Research question: How does stock.rule.run() decide whether and how to fulfil procurement requests?
+
+Source: User-provided excerpt from stock/models/stock_rule.py, including _skip_procurement(), run(), _search_rule_for_warehouses(), and the beginning of _search_rule().
+
+Observed:
+- _skip_procurement() skips procurements for products whose type is not consu or whose quantity is zero at the procurement UoM precision.
+- run() defines an error handler that raises UserError when raise_user_error=True, otherwise raises ProcurementException with the procurement errors.
+- For each procurement, defaults are populated for company, priority ('0'), and planned date (current datetime when absent).
+- The method calls _get_rule() for each eligible procurement. If no rule is found, it records an error identifying the product and location and advising verification of product routes.
+- Rules with pull_push action are dispatched as pull. Procurements are grouped by action and passed to a dynamically selected _run_<action>() method.
+- ProcurementException errors from action methods are collected and raised after processing. Missing _run_<action>() methods are logged. Successful execution returns True.
+- _search_rule_for_warehouses() builds valid route candidates from explicit routes, packaging routes, product and category routes, and filtered warehouse routes. It groups matching rules by destination location, route, and warehouse, ordering candidates by route and rule sequence.
+- The beginning of _search_rule() shows rule precedence starting with procurement-group routes, then packaging routes, then product and category routes, with warehouse filtering applied.
+
+Interpretation: Procurement dispatch is route-driven and action-based. Odoo validates all eligible requests for a rule before dispatching grouped actions, and it preserves procurement-specific failure information when fulfillment cannot proceed.
+
+Uncertainty: The remaining _search_rule() fallback behavior, _get_rule() implementation, exact action handlers, and runtime behavior when some requests fail remain uninspected.
+
+Risk: Read-only source inspection; no database or transaction changes. Route configuration and missing-rule errors require controlled tests.
+
+Decision: The dispatcher and initial rule-selection logic are source-inspected. Keep procurement routing open until rule precedence and the pull action are traced.
+
+Next command:
+MSYS_NO_PATHCONV=1 docker exec odoo19-research-app sed -n '530,660p' /usr/lib/python3/dist-packages/odoo/addons/stock/models/stock_rule.py
