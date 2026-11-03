@@ -1377,3 +1377,31 @@ Decision: Mark rule-chain traversal and orderpoint lead-horizon/deadline usage a
 Next action:
 - Locate all assignments and reads of the purchase_delay delay key, then inspect the complete surrounding date and replenishment methods.
 
+
+
+## Phase 2 — Step 2.27 purchase_delay provenance search unavailable locally (2026-11-03)
+
+Research question: Where is delays['purchase_delay'] assigned or read in the installed Odoo source?
+
+Command attempted:
+```bash
+rg -n "purchase_delay" /workspace/scratch/4b6bcfdb330d /usr/lib/python3/dist-packages/odoo 2>/dev/null | head -100
+```
+
+Observed result:
+- The search found only the unresolved references already recorded in this notebook.
+- The installed Odoo source tree was not available at the searched local path, so no assignment or additional caller was found.
+
+Interpretation: The provenance of the purchase_delay key remains unresolved. No source conclusion is added from this failed local search.
+
+Uncertainty: The key may be added by an inherited module or another mounted source tree, but that is only a hypothesis until source evidence is retrieved.
+
+Risk: Environment/path limitation; no database or application changes.
+
+Decision: Keep purchase_delay provenance open.
+
+Next command:
+```bash
+docker exec odoo19-research-app sh -lc "rg -n \"purchase_delay\" /usr/lib/python3/dist-packages/odoo/addons"
+```
+
