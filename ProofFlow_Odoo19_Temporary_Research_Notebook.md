@@ -1337,3 +1337,43 @@ Decision: Keep this branch open and rerun the command from a shell with access t
 Next action:
 - Retrieve the four source ranges from the Odoo container, then record the calculations before drawing workflow conclusions.
 
+
+
+## Phase 2 — Step 2.26 lead-time consumption, rule recursion, and orderpoint dates (2026-11-03)
+
+Research question: How do product and orderpoint methods consume the delays returned by _get_lead_days()?
+
+Source: User-provided excerpts from stock/models/product.py and stock/models/stock_orderpoint.py.
+
+Observed:
+- Product rule traversal starts at a location and calls stock.rule._get_rule() with route and warehouse context.
+- _get_rules_from_location() tracks rules in seen_rules. If a rule repeats, it raises UserError for an endless rule loop.
+- Traversal stops when the selected rule uses make_to_stock or its action is outside pull_push and pull. Otherwise it recursively follows rule.location_src_id.
+- _get_dates_info() obtains the traversed rules, calls _get_lead_days() with delay descriptions bypassed, and returns the supplied planned date plus an order date calculated by subtracting delays['purchase_delay'] days.
+- The supplied base _get_lead_days() excerpt previously showed total_delay and horizon_time, but did not show where a purchase_delay key is added. The source path for that key remains unresolved.
+- Orderpoint deadline computation walks sorted outgoing move dates and accumulates quantities against qty_on_hand. When the projected quantity falls below product_min_qty, it sets a tentative deadline to move_date minus orderpoint.lead_days. It stores that deadline only when it is earlier than the horizon date; otherwise deadline_date is False.
+- _compute_lead_days() runs for orderpoints with a product and location, obtains _get_lead_days_values(), calls rule_ids._get_lead_days(), sets lead_horizon_date to today plus total_delay plus horizon_time, and sets lead_days to total_delay. Orderpoints without a product or location are cleared.
+- _get_lead_days_values() returns days_to_order.
+- _get_product_context() evaluates virtual availability at the orderpoint location and at datetime.combine(lead_horizon_date, time.max).
+- Replenishment logic groups products with negative quantities by total_delay plus horizon_time and location before batch-reading virtual availability. It uses the same lead-time calculation with delay descriptions bypassed.
+- The excerpt includes only a partial _compute_rules() body; no conclusion is drawn about omitted lines.
+
+Interpretation:
+- Product rule traversal follows upstream pull chains and explicitly prevents infinite recursion.
+- Orderpoint lead horizon is numeric: cumulative rule delay plus global horizon is converted into a future date used for forecasted availability.
+- Replenishment batching uses the same combined lead-time duration to choose the forecast date.
+- Deadline calculation works backward from the first projected shortage by subtracting the computed lead_days.
+- The purchase_delay field used by _get_dates_info() is not explained by the previously inspected base method excerpt, so it may come from an inherited extension or a different delay component; this is an unresolved dependency rather than an established fact.
+
+Uncertainty:
+- The exact source that adds delays['purchase_delay'] is not yet identified.
+- The full _compute_rules() and replenishment context logic are only partially shown.
+- Runtime behavior for cycles, horizon boundaries, projected shortages, and date/time-zone handling remains untested.
+
+Risk: Source inspection only; no database or transaction changes. A missing delay-key dependency could lead to an incomplete date reconstruction if treated as fully understood.
+
+Decision: Mark rule-chain traversal and orderpoint lead-horizon/deadline usage as source-inspected. Keep purchase_delay provenance and remaining partial methods open.
+
+Next action:
+- Locate all assignments and reads of the purchase_delay delay key, then inspect the complete surrounding date and replenishment methods.
+
