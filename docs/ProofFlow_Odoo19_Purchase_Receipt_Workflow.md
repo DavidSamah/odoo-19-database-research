@@ -278,3 +278,8 @@ The planned grep for callers of `_get_lead_days()` and `_serialize_procurement_v
 ## Lead-time caller evidence
 
 The installed source uses procurement serialization while constructing pull-rule stock moves. Lead-time accumulation is called from product lead-time calculation and from orderpoint scheduling/deadline logic. Those callers suppress descriptive delay text for numeric scheduling. Exact date calculations remain under inspection.
+
+
+## Lead-time consumer inspection status
+
+The planned inspection of the product and orderpoint methods that consume lead-time values could not run in the current shell because `docker` was unavailable. The detailed notebook records the blocked command; exact date and deadline arithmetic remain unverified.
