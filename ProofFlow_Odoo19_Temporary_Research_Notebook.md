@@ -1311,3 +1311,29 @@ Next command:
 MSYS_NO_PATHCONV=1 docker exec odoo19-research-app sed -n '720,755p;165,195p;465,490p;550,580p' /usr/lib/python3/dist-packages/odoo/addons/stock/models/product.py /usr/lib/python3/dist-packages/odoo/addons/stock/models/stock_orderpoint.py
 ```
 
+
+
+## Phase 2 — Step 2.25 surrounding lead-time callers unavailable in current shell (2026-11-03)
+
+Research question: How do product and orderpoint methods consume the delays returned by _get_lead_days()?
+
+Command attempted:
+```bash
+MSYS_NO_PATHCONV=1 docker exec odoo19-research-app sh -lc "sed -n '720,755p' /usr/lib/python3/dist-packages/odoo/addons/stock/models/product.py; sed -n '165,195p' /usr/lib/python3/dist-packages/odoo/addons/stock/models/stock_orderpoint.py; sed -n '465,490p' /usr/lib/python3/dist-packages/odoo/addons/stock/models/stock_orderpoint.py; sed -n '550,580p' /usr/lib/python3/dist-packages/odoo/addons/stock/models/stock_orderpoint.py"
+```
+
+Observed result:
+- The current shell returned `/bin/bash: line 1: docker: command not found`.
+- No surrounding method source was retrieved.
+
+Interpretation: The exact date and deadline calculations consuming lead-time values remain unverified. The previously recorded caller locations are still valid, but no further behavior is inferred.
+
+Uncertainty: Product lead-time field updates, orderpoint deadline computation, horizon handling, and date arithmetic remain open.
+
+Risk: Environment/tooling limitation only; no application or database changes were made.
+
+Decision: Keep this branch open and rerun the command from a shell with access to the Odoo application container or mounted source tree.
+
+Next action:
+- Retrieve the four source ranges from the Odoo container, then record the calculations before drawing workflow conclusions.
+
