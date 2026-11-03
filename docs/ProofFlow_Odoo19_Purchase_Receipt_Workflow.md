@@ -283,3 +283,8 @@ The installed source uses procurement serialization while constructing pull-rule
 ## Lead-time consumer inspection status
 
 The planned inspection of the product and orderpoint methods that consume lead-time values could not run in the current shell because `docker` was unavailable. The detailed notebook records the blocked command; exact date and deadline arithmetic remain unverified.
+
+
+## Lead-time calculation evidence
+
+Product rule traversal follows pull chains recursively and raises an error when a rule repeats. Orderpoints compute a future lead horizon from total rule delay plus the company horizon, evaluate virtual availability at that date, and derive shortage deadlines by subtracting lead days. The provenance of the `purchase_delay` value used in product date preparation remains open.
