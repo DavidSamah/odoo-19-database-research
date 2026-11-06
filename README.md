@@ -1,189 +1,194 @@
-# Odoo 19 — Database & Architecture Research
+# Odoo 19 — Accounting, Purchase & Inventory Research
 
-**An independent, evidence-driven investigation of Odoo 19's accounting, procurement, inventory, and ORM architecture.**
+**An evidence-driven examination of Odoo 19's business logic and the technical foundation for ProofFlow.**
 
-**Research status:** Active — Source-code analysis and relationship mapping  
-**Development approach:** Research → Verify → Design → Implement → Test → Deploy
+> **Project status — 6 November 2026:** The source-research investigation and source/schema archive-preservation workflow have substantial documented evidence. A reconstructable **source-and-schema archive was verified locally**. This repository is **not** a deployed or production-validated Odoo system, and ProofFlow is **not** presented here as a completed Odoo integration.
 
-## 1. About This Project
+## Why this repository exists
 
-I began this project to understand Odoo's internal architecture before developing an application that integrates with its business workflows.
+Accounting exceptions are difficult to resolve when a purchase order, receipt, vendor invoice, journal entry, and payment each contain different values. Those differences are not automatically errors: they may reflect legitimate deliveries, purchase policies, supplier credits, taxes, rounding, currency conversion, or partial payment.
 
-As a self-taught software developer, I approach complex systems by breaking them down into their underlying components, studying their relationships, testing assumptions, and documenting findings before implementation.
+The purpose of this research is to identify **what Odoo actually does**, where each rule resides, what data supports it, and what remains uncertain. ProofFlow is the intended downstream application: a system for detecting, investigating, reviewing, correcting and independently verifying accounting exceptions. That product objective is kept separate from proven Odoo behavior.
 
-Rather than immediately writing a new Odoo application, I chose to investigate how Odoo already manages accounting records, purchase orders, inventory movements, and vendor bills.
+Our rule: **question → exact source/command → observed output → interpretation → limitation → next investigation**.
 
-This repository documents that investigation and the reproducible tooling developed along the way.
+## Navigate the research
 
-## 2. Research Completed So Far
+| Document | Purpose |
+|---|---|
+| [Odoo 19 framework architecture](docs/architecture/ODOO19_FRAMEWORK_MAP.md) | Entry points, registry, ORM, modules, security, business logic and PostgreSQL |
+| [ProofFlow business logic derived from research](docs/PROOFFLOW_BUSINESS_LOGIC.md) | Purchase-to-pay evidence chain, exception cases, corrective-action boundaries and review gates |
+| [Chronological commit research](docs/research/CHRONOLOGICAL_RESEARCH.md) | Historical Git patch order and recorded methodological progression |
+| [Integrated observations](docs/research/INTEGRATED_OBSERVATION_INDEX.md) | Phase 1, procurement and nine-domain crosswalk |
+| [Nine accounting domains](docs/research/NINE_DOMAIN_EVIDENCE_INDEX.md) | Domain-by-domain source/database findings and evidence status |
+| [Source grouping by module](docs/research/SOURCE_GROUPING_BY_MODULE.md) | Original installed paths vs historical snapshots |
+| [Reconstruction method](docs/research/RECONSTRUCTION_METHOD.md) | What an archive can—and cannot—reconstruct |
+| [Source validation results](docs/research/VALIDATION_RESULTS.md) | Historical source and syntax integrity checks |
+| [Local archive milestones](docs/RECONSTRUCTION_CHECKPOINTS.md) | Observed source, dependency, schema and ZIP checks |
+| [Methodological evidence standard](docs/RESEARCH_METHODOLOGY.md) | Individual command record template and verification levels |
+| [Publication and privacy policy](docs/PUBLICATION_BOUNDARY.md) | What belongs in a public repository vs a private capture |
+| [Original temporary notebook](ProofFlow_Odoo19_Temporary_Research_Notebook.md) | Early Phase 1 and procurement investigation |
+| [Original purchase/receipt workflow](docs/ProofFlow_Odoo19_Purchase_Receipt_Workflow.md) | Historical purchase-stock method tracing |
+| [Field inventory](models/odoo19_field_inventory.csv) | Static Odoo model-field extraction |
+| [Model extraction script](scripts/extract_odoo_models.py) | AST-based research tooling |
+| [Historical source snapshots](models/source/) | Selected Odoo source copies previously committed |
 
-### Environment and Version Control
+**Historical evidence caveat:** Some research indexes were authored for an offline archive; relative references to its original terminal files or commit patches may not resolve on GitHub. Those records have not been silently regenerated or invented.
 
-- Established a local research environment using Python 3.11.9, Git, and Docker Desktop.
-- Verified Docker Engine 29.7.2 and identified an existing PostgreSQL 17 staging environment.
-- Kept the existing PostgreSQL database volume separate from the Odoo research.
-- Pinned the Odoo 19 source investigation to commit `7c45959e02b2d8abc52913184237b72f7bae93a2`.
-- Created Git checkpoints to preserve reproducible research progress.
+## End-to-end system logic
 
-### Odoo ORM Model Analysis
+\`\`\`mermaid
+flowchart LR
+    A["Purchase order + line\nordered quantity / policy"] --> B["Stock picking + stock.move\ncompleted receipt / return"]
+    A --> C["Vendor bill / credit note\naccount.move"]
+    B --> D["Receipt-derived quantity"]
+    D --> E{"Reconcile evidence\nagainst billing policy"}
+    C --> E
+    E --> F["Invoice / tax lines\naccount.move.line"]
+    F --> G["Posting checks\nbalance + permissions + fiscal date"]
+    G --> H["Journal / ledger"]
+    H --> I["Payment + partial/full reconciliation"]
+    E -. "possible discrepancy" .-> J["ProofFlow candidate exception"]
+    J --> K["Evidence + review"]
+    K --> L["Authorized correction"]
+    L --> M["Independent outcome verification"]
+\`\`\`
 
-Developed a Python AST-based analyzer to examine Odoo model declarations.
+This diagram is a **conceptual dependency map**. Receipt, bill and payment processing do not necessarily occur in a fixed order, and an accounting difference is not necessarily an exception.
 
-**Initial extraction results:**
+### 1. Purchase commitment
 
-| Metric | Result |
-|---|---:|
-| Source files analyzed | 4 |
-| Field declarations extracted | 353 |
-| Many2one relationships | 82 |
-| One2many relationships | 15 |
-| Many2many relationships | 21 |
-| Total relational declarations | 118 |
+A purchase order, represented by \`purchase.order\` and \`purchase.order.line\`, records the commercial agreement. The source investigation located \`button_confirm()\`, approval conditions, ordered quantity (\`product_qty\`), unit price, discount, tax configuration and invoice policy.
 
-The initial investigation focused on:
+**Key source:** \`purchase/models/purchase_order.py\`, \`purchase/models/purchase_order_line.py\`.
 
-- `account.move` — Journal entries and vendor bills
-- `account.move.line` — Accounting line items
-- `purchase.order` — Purchase orders
-- `stock.move` — Inventory movements
+### 2. Physical receipt
 
-The analyzer produces a CSV inventory containing field names, field types, model declarations, source locations, and selected field attributes.
+The installed \`purchase_stock\` addon extends purchase models. Its purchase approval path invokes \`_create_picking()\`; stock movements and receipts are represented by \`stock.move\` and \`stock.picking\`.
 
-These results represent static source-code declarations, not the complete runtime PostgreSQL schema.
+Receiving quantity involves qualifying completed stock moves, returns and unit-of-measure conversion, with exceptional handling for manual receipt quantities and dropshipping. **It is not safe to infer receipt solely from ordered quantity or a picking existing.**
 
-### Accounting and Purchasing Relationships
+**Key source:** \`purchase_stock/models/purchase_order.py\`, \`purchase_stock/models/purchase_order_line.py\`, \`stock/models/stock_move.py\`.
 
-Traced relationships connecting purchase order lines, vendor bill lines, and their parent accounting records.
+### 3. Vendor billing and credit notes
 
-Verified that Odoo links purchase order lines to accounting lines through `purchase_line_id`, and uses related record traversal to derive purchase order billing relationships.
+Vendor bills are accounting documents (\`account.move\`), while bill lines are journal-line records (\`account.move.line\`). The purchase-line relationship may be represented by \`purchase_line_id\`. Invoiced quantity reflects qualifying bill lines and supplier credits/refunds under Odoo's rules.
 
-This investigation also established that invoice lines are a filtered subset of accounting move lines, rather than a completely separate underlying model.
+**Key source:** \`account/models/account_move.py\`, \`account/models/account_move_line.py\`, \`purchase/models/purchase_order_line.py\`.
 
-### Inventory and Receipt Calculations
+### 4. Pricing, tax and currency
 
-Examined Odoo's `purchase_stock` module to understand how received quantities are derived from stock movements.
+\`account.move.line._compute_totals()\` delegates to tax-base preparation and \`account.tax\` calculations and rounding. Discounts, UoM normalization, tax inclusivity, fiscal positions and currency conversion can affect the apparent difference between PO, receipt and invoice.
 
-The source investigation covered:
+**Key source:** \`account/models/account_move_line.py\` and related tax/currency models. Detailed trace: [framework map](docs/architecture/ODOO19_FRAMEWORK_MAP.md).
 
-- Completed stock movements
-- Supplier returns
-- Receipt eligibility
-- Unit-of-measure conversions
-- Manual receipt quantities
-- Special dropshipping conditions
+### 5. Posting and ledger entries
 
-An important finding was that Odoo's receipt calculations involve business rules beyond simply summing stock quantities.
+Posting through \`account.move.action_post()\` and \`_post()\` is subject to model and explicit access checks, balancing and fiscal-period restrictions. A database row or draft vendor bill does **not** prove a posted financial obligation.
 
-### Vendor Billing and Credit Notes
+Journal lines carry \`debit\`, \`credit\`, \`balance\` and \`amount_currency\` values, while receivable/payable obligations introduce maturity and residual calculations.
 
-Investigated how Odoo computes invoiced quantities and determines quantities remaining to be billed.
+### 6. Payments and reconciliation
 
-Verified that vendor bills contribute positively to invoiced quantities, while qualifying supplier credit notes reduce those quantities.
+Payment registration, payment posting and matching are separate operations. Partial and full reconciliation change which obligations remain outstanding. **Ledger balance is not equivalent to invoice residual**, and posting is not equivalent to settlement.
 
-Also examined how product billing policies affect whether invoiceable quantities are calculated from ordered or received quantities.
+### 7. System-wide controls
 
-### Existing Bill-Matching Functionality
+- **Security:** \`ir.model.access\`, \`ir.rule\`, groups, company checks, \`sudo()\`, \`with_company()\` and explicit posting checks.
+- **Fiscal controls:** fiscal-year, tax, sale, purchase and hard lock dates, with configured exceptions.
+- **Reporting:** base \`account.report\` definitions were found even though separately named reporting addons were absent from inspected paths.
+- **Assets:** asset-type account classifications were present, but the dedicated depreciation addon was not available in the inspected installation.
 
-Studied Odoo's `purchase.bill.line.match` implementation.
+These are **installation-scoped observations**, not statements about all Odoo editions or configurations.
 
-The investigation identified:
+## Source architecture and data paths
 
-- A SQL-backed matching view
-- Purchase-order-line and vendor-bill-line selection
-- Product-based matching behavior
-- Creation of draft vendor bills
-- Updates to purchase-line relationships
-- Potential deletion of unmatched selected bill lines
-- An action that opens the `bill.to.po.wizard`
+\`\`\`text
+Odoo request / job / CLI / integration
+   |
+   +-- HTTP, actions and scheduling
+   +-- per-database registry + ORM environment
+   +-- installed modules and inherited models
+   |   +-- purchase
+   |   +-- purchase_stock
+   |   +-- stock
+   |   +-- account
+   +-- access rights, record rules, fiscal and company constraints
+   +-- PostgreSQL transaction, tables, relations and constraints
+\`\`\`
 
-These findings are important because matching operations can modify existing financial records. Any future integration must distinguish read-only investigation from authorized corrective actions.
+Important inspected models and database mappings:
 
-## 3. Research Methodology
+| Business object | Model | Physical table |
+|---|---|---|
+| Purchase order | \`purchase.order\` | \`purchase_order\` |
+| Purchase line | \`purchase.order.line\` | \`purchase_order_line\` |
+| Stock movement | \`stock.move\` | \`stock_move\` |
+| Vendor bill / journal entry | \`account.move\` | \`account_move\` |
+| Invoice / journal line | \`account.move.line\` | \`account_move_line\` |
+| Payment | \`account.payment\` | \`account_payment\` |
+| Accounting security | \`ir.model.access\`, \`ir.rule\` | \`ir_model_access\`, \`ir_rule\` |
+| Company settings | \`res.company\` | \`res_company\` |
 
-My investigation follows a reproducible process:
+Model declarations, computed fields, ORM SQL views and relation tables do not always map one-to-one. See the [full architecture map](docs/architecture/ODOO19_FRAMEWORK_MAP.md).
 
-1. Identify the relevant Odoo model or business workflow.
-2. Retrieve the source from a pinned Odoo revision.
-3. Extract field definitions and relationships programmatically.
-4. Inspect the methods responsible for business behavior.
-5. Trace dependencies across related addons.
-6. Separate verified findings from unresolved questions.
-7. Preserve research tooling and selected results in Git.
+## Research chronology and scope
 
-The objective is to understand existing behavior before implementing new functionality.
+| Phase | Scope | Key outcome |
+|---|---|---|
+| Oct 29–30 | Repository setup, source field inventory, early DB-031/DB-036 findings | Structured model/schema evidence |
+| Nov 2 — Phase 1 | Invoice-line pricing, tax, discount, UoM and currency source tracing | Dependency-based source review recorded complete; runtime tests deferred |
+| Nov 2–3 | Purchase receipt, procurement dispatch, stock rules, pull/push, lead time | Source paths and observed limitations preserved |
+| Nov 4–5 | Nine accounting domains | Journal posting through company isolation investigated |
+| Nov 5 | Domain 9 commands 6–10 | **New** source/database observations; not retroactively historical |
+| Nov 5–6 | Source/schema capture | Complete installed-source TAR, dependency inventory, schema-only dump and ZIP reconstruction |
 
-## 4. Repository Contents
+The original earliest workspace-creation command history remains incomplete. Later re-executed commands are explicitly tagged as **new evidence**.
 
-```text
-odoo-19-database-research/
-├── README.md
-├── LICENSE
-├── scripts/
-│   └── extract_odoo_models.py
-└── models/
-    └── odoo19_field_inventory.csv
-```
+## Verified reconstruction checkpoints (reported from local execution)
 
-The repository contains original research tooling and an extracted model inventory. The analysis references the official Odoo 19 source code.
+| Measure | Observed output |
+|---|---|
+| Live vs TAR source-path inventory | **71,801 vs 71,801; zero differences** |
+| Archived regular source files | **60,706** |
+| Symlinks | **19** |
+| Byte-for-byte TAR ↔ ZIP comparisons | **60,706 / 60,706 passed** |
+| Link-target comparisons | **19 / 19 passed** |
+| Supporting file hashes | **35 / 35 passed** |
+| Corrected missing-source inventory | **58 / 58 copied** |
+| PostgreSQL schema-only table definitions | **458** |
+| Local ZIP integrity | **PASS** |
 
-## 5. Current Limitations
+These measurements come from the user's local commands. The large framework TAR and final ZIP are **not in this GitHub repository**. The research database then contained zero journal entries/journal lines, so the schema and source analysis must not be presented as an end-to-end runtime accounting test.
 
-This is an ongoing investigation, not a completed Odoo application or full database audit.
+## ProofFlow: evidence-driven exception handling
 
-At the present stage:
+**Intended workflow—not a claim of a deployed feature:**
 
-- Static source-code relationships have been investigated.
-- The complete installed Odoo database schema has not been verified.
-- Runtime behavior still requires testing in an isolated Odoo environment.
-- Database constraints, access rights, record rules, and multi-company protections require further investigation.
-- The proposed ProofFlow application has not yet completed implementation or deployment.
+1. Ingest the purchase order line, qualifying receipts/returns and linked vendor bill/credit-note lines.
+2. Normalize quantity units, currencies and applicable tax/discount treatment.
+3. Evaluate the relevant purchase billing policy and compare justified quantities and amounts.
+4. Create an exception only when the discrepancy is meaningful under the policy and supported evidence.
+5. Preserve provenance: Odoo model, record IDs, source timestamps, calculations, supporting documents and version of the rule.
+6. Assign review; require independent approval where material or privileged corrections are involved.
+7. Perform correction only through authorized, auditable operations.
+8. Re-read authoritative records and independently verify the outcome; mark stale evidence and unresolved conditions.
 
-These limitations are documented deliberately to keep the research reproducible and technically accurate.
+Detailed specification and examples: [ProofFlow business logic](docs/PROOFFLOW_BUSINESS_LOGIC.md).
 
-## 6. What Comes Next
+## Research methodology and evidence levels
 
-The next research and development stages will focus on:
+Each command record should contain: **question, why this method, exact command, actual terminal output, explanation, interpretation, uncertainty, decision, next action, source paths and evidence classification**.
 
-- Completing the investigation of Odoo's bill-to-purchase-order wizard
-- Studying PostgreSQL constraints and ORM inheritance
-- Examining accounting permissions and multi-company security
-- Testing invoice, receipt, return, and pricing edge cases
-- Building an isolated Odoo 19 development environment
-- Designing and implementing ProofFlow's accounting-exception workflow
-- Validating the application through automated tests before deployment
+We distinguish source inspection, read-only database observation, runtime execution, architectural inference and proposed business rules. Blocked source searches remain recorded as blocked; negative results are not silently translated into claims of absence.
 
-### ProofFlow — Planned Application
+See [research methodology](docs/RESEARCH_METHODOLOGY.md).
 
-The longer-term objective is to develop **ProofFlow**, an accounting workflow solution focused on investigating and resolving exceptions between purchasing, inventory, and vendor billing records.
+## Public-repository safety and attribution
 
-The intended workflow includes discrepancy detection, supporting evidence, review and approval, authorized corrections, and verification of resolution outcomes.
+This is a **public** repository. Do not commit credentials, private database dumps, local capture paths containing personal data, Odoo filestore contents, production configurations, or the large reconstructed framework/ZIP. Preserve those privately with checksums. The full installed Odoo code is better obtained from its upstream sources under the applicable licenses; this repository preserves selected historical snapshots and independent analysis.
 
-ProofFlow is currently a development objective informed by this research—not a completed integration demonstrated by this repository.
+Upstream: https://github.com/odoo/odoo  
+Research source baseline recorded: \`7c45959e02b2d8abc52913184237b72f7bae93a2\` (per-file/local-image revision equivalence has not been independently established).
 
-## 7. Motivation and Professional Development
-
-I am sharing this project as evidence of how I approach software engineering: through independent learning, source-code investigation, structured experimentation, and progressively verified implementation.
-
-My interest in Odoo extends beyond using its applications. I want to understand how its internal systems operate, why particular business rules exist, and how to develop reliable extensions that respect those rules.
-
-Following my application for an Odoo Software Developer position, I recognized the importance of presenting concrete, independently inspectable evidence of my technical abilities.
-
-This repository is part of that effort.
-
-I respect the recruitment decision, while remaining committed to improving my engineering skills and demonstrating them through practical work.
-
-My goal is to continue developing this research into a carefully tested, useful application and to remain open to future opportunities where these skills may contribute value.
-
----
-
-## 8. Source and Attribution
-
-Official Odoo source code: https://github.com/odoo/odoo
-
-Research baseline: `7c45959e02b2d8abc52913184237b72f7bae93a2`
-
-Odoo and its source code remain the intellectual property of their respective owners and contributors. This project is an independent investigation and is not affiliated with or endorsed by Odoo S.A.
-
-**Author:** David Samah  
-**Project:** Odoo 19 Database & Architecture Research  
-**Status:** Research ongoing
+**Independent research — not affiliated with or endorsed by Odoo S.A.** This repository is a research foundation, not a certification of Odoo security or ProofFlow production readiness.
