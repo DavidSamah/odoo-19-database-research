@@ -8,7 +8,6 @@
 
 - **[S] Source-inspected** — code from the Git patch's *complete historical source snapshots*, or an identified code excerpt in preserved terminal evidence. References below give path and line/method; individual Docker revision hash and historical snapshot can differ, so source lines belong to the cited evidence snapshot.
 - **[DB] Database-observed** — read-only queries from `odoo19_security_research`, or the user's verified schema-only export. No accounting transactions were available in that research database.
-- **[DOC] Odoo 19 official documentation** — generic framework mechanisms, not independently inspected line-by-line in the user's installed 60,706-file capture.
 - **[I] Architectural inference** — a reasoned connection implied by documented and inspected methods; *not an executed call trace*.
 - **[U] Unverified** — requires source investigation beyond saved excerpts, a separate isolated runtime database, or a user-authenticated scenario.
 
