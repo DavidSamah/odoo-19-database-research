@@ -12,18 +12,18 @@ A purchase order defines a commitment, a stock movement provides receipt/return 
 
 | Role | Odoo object | Evidence to preserve |
 |---|---|---|
-| Commitment | \`purchase.order\` and \`purchase.order.line\` | PO state, company, supplier, product, ordered qty, price, currency, UoM, invoice policy |
-| Physical movement | \`stock.picking\`, \`stock.move\` | Picking and move IDs, done state, quantities, source/destination, return links, UoM |
-| Billing | \`account.move\`, \`account.move.line\` | Bill/refund type, posting state, company, partner, invoice date, linked purchase line, price and tax |
-| Accounting | \`account.move.line\`, \`account.account\`, \`account.journal\` | Debit/credit/balance, reconciliation state, journal and fiscal constraints |
-| Settlement | \`account.payment\`, partial/full reconciliation records | Amount, currency, matched lines, residual and settlement date |
-| Authorization | \`ir.model.access\`, \`ir.rule\`, groups, company | Permitted actor, company scope, review/approval authorization |
+| Commitment | `purchase.order` and `purchase.order.line` | PO state, company, supplier, product, ordered qty, price, currency, UoM, invoice policy |
+| Physical movement | `stock.picking`, `stock.move` | Picking and move IDs, done state, quantities, source/destination, return links, UoM |
+| Billing | `account.move`, `account.move.line` | Bill/refund type, posting state, company, partner, invoice date, linked purchase line, price and tax |
+| Accounting | `account.move.line`, `account.account`, `account.journal` | Debit/credit/balance, reconciliation state, journal and fiscal constraints |
+| Settlement | `account.payment`, partial/full reconciliation records | Amount, currency, matched lines, residual and settlement date |
+| Authorization | `ir.model.access`, `ir.rule`, groups, company | Permitted actor, company scope, review/approval authorization |
 
 These are **provenance candidates**. The exact fields and data-access contract must be validated for the installed Odoo configuration.
 
 ## Business-rule pipeline
 
-\`\`\`text
+```text
 read-only acquisition
   → identity and company scope checks
   → link records by Odoo relationships
@@ -35,7 +35,7 @@ read-only acquisition
   → authorized correction in authoritative system
   → refresh evidence and independently verify outcome
   → close / reopen / escalate
-\`\`\`
+```
 
 ### Quantity calculation is contextual
 
@@ -50,7 +50,7 @@ Ordered **100**, qualifying received **80**, invoiced **100**. Under a policy th
 
 ### Financial amount calculation
 
-\`account.move.line._compute_totals()\` delegates to \`account.tax\` helpers for prepared tax bases, included/excluded subtotals and rounding. Unit price × quantity alone cannot reproduce every Odoo result. The proposed case engine must preserve the actual Odoo currency, fiscal position, discount and tax method inputs rather than silently using floating point arithmetic.
+`account.move.line._compute_totals()` delegates to `account.tax` helpers for prepared tax bases, included/excluded subtotals and rounding. Unit price × quantity alone cannot reproduce every Odoo result. The proposed case engine must preserve the actual Odoo currency, fiscal position, discount and tax method inputs rather than silently using floating point arithmetic.
 
 ### Posting, reconciliation and closing
 
@@ -58,17 +58,17 @@ A draft vendor bill is not a posted journal entry. A posted journal entry is not
 
 ### Security and multi-company
 
-Never infer authorization from the user interface alone. Odoo access depends on ACLs, record rules, contextual company scope and explicit checks. \`sudo()\` is a high-risk privileged operation. Proposed actions must record the target company, actor, basis for authority, source state, intended change and audit outcome.
+Never infer authorization from the user interface alone. Odoo access depends on ACLs, record rules, contextual company scope and explicit checks. `sudo()` is a high-risk privileged operation. Proposed actions must record the target company, actor, basis for authority, source state, intended change and audit outcome.
 
 ## Proposed exception states
 
-\`\`\`text
+```text
 detected → awaiting_evidence → ready_for_review → approved_for_action
          ↘ insufficient_evidence → escalated
 approved_for_action → correction_requested → pending_verification
 pending_verification → verified_resolved
 pending_verification → unresolved / stale_evidence / reopened
-\`\`\`
+```
 
 These are **design proposals**, not Odoo native model states or proof of implemented ProofFlow endpoints.
 

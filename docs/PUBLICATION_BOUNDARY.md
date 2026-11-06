@@ -13,11 +13,11 @@ The linked GitHub repository is **public**. It is appropriate for curated source
 ## Keep out of GitHub history
 
 - Database schema/row dumps if they reveal local or third-party configuration; always review even schema-only exports.
-- Credentials, \`.env\`, API keys, database URLs, authentication cookies and service configuration.
-- Full private \`/var/lib/odoo\` or attachments filestore.
+- Credentials, `.env`, API keys, database URLs, authentication cookies and service configuration.
+- Full private `/var/lib/odoo` or attachments filestore.
 - Large Odoo TAR and reconstructed ZIP (use private artifact storage if needed).
 - Unreviewed raw terminal transcripts or patches; they may include account identifiers or command secrets.
-- Generated \`*.log\`, \`*.dump\`, \`*.backup\`, \`*.sql\` and large \`*.zip\` artifacts.
+- Generated `*.log`, `*.dump`, `*.backup`, `*.sql` and large `*.zip` artifacts.
 
 ## Why not upload the entire installed Odoo codebase?
 
@@ -25,9 +25,9 @@ The source code already has an authoritative upstream repository and license obl
 
 ## Recommended local structure
 
-\`\`\`text
+```text
 odoo-19-database-research/     # reviewed, publishable Git history
 ~/Odoo19_Private_Capture/      # TAR, ZIP, dependencies, private schema/evidence
-\`\`\`
+```
 
-Review \`git status --short\`, \`git diff --cached --stat\`, \`git diff --cached --check\` and all staged file contents before pushing. Never force-push over existing research.
+Review `git status --short`, `git diff --cached --stat`, `git diff --cached --check` and all staged file contents before pushing. Never force-push over existing research.

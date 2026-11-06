@@ -34,7 +34,7 @@ Every investigation is a traceable sequence, not a collection of conclusions.
 
 **Command:**
 
-\`\`\`bash
+```bash
 docker exec odoo19-research-app sh -c '
 BASE=/usr/lib/python3/dist-packages/odoo/addons
 for MODULE in account_reports account_financial_report; do
@@ -47,9 +47,9 @@ done
 grep -RnE "^[[:space:]]+def .*report|_name = .account.report|_inherit = .account.report" \
   "$BASE/account/models" "$BASE/account/report" 2>/dev/null | head -115
 '
-\`\`\`
+```
 
-**Selected observed results:** Dedicated addons unavailable; \`account/models/account_report.py\` declared \`account.report\`, \`account.report.line\`, \`account.report.expression\`, \`account.report.column\`, and \`account.report.external.value\`.
+**Selected observed results:** Dedicated addons unavailable; `account/models/account_report.py` declared `account.report`, `account.report.line`, `account.report.expression`, `account.report.column`, and `account.report.external.value`.
 
 **Interpretation:** Base reporting models exist, but a complete financial-reporting calculation run was not demonstrated. **Next:** inspect reporting metadata and calculation/aggregation paths.
 
@@ -57,4 +57,4 @@ grep -RnE "^[[:space:]]+def .*report|_name = .account.report|_inherit = .account
 
 The October–November Git patch, Phase 1 notebook, November 4 transcripts, November 5 recovery outputs, later nine-domain checkpoints, and November 6 archive integrity checks have **different collection times and scopes**. Never merge them into a fictional uninterrupted original terminal transcript.
 
-Preserve \`commit_changes.patch\` and full terminal logs privately unless they are reviewed for secrets and personally identifying data before public publication.
+Preserve `commit_changes.patch` and full terminal logs privately unless they are reviewed for secrets and personally identifying data before public publication.

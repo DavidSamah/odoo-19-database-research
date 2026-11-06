@@ -37,7 +37,7 @@ Our rule: **question → exact source/command → observed output → interpreta
 
 ## End-to-end system logic
 
-\`\`\`mermaid
+```mermaid
 flowchart LR
     A["Purchase order + line\nordered quantity / policy"] --> B["Stock picking + stock.move\ncompleted receipt / return"]
     A --> C["Vendor bill / credit note\naccount.move"]
@@ -52,41 +52,41 @@ flowchart LR
     J --> K["Evidence + review"]
     K --> L["Authorized correction"]
     L --> M["Independent outcome verification"]
-\`\`\`
+```
 
 This diagram is a **conceptual dependency map**. Receipt, bill and payment processing do not necessarily occur in a fixed order, and an accounting difference is not necessarily an exception.
 
 ### 1. Purchase commitment
 
-A purchase order, represented by \`purchase.order\` and \`purchase.order.line\`, records the commercial agreement. The source investigation located \`button_confirm()\`, approval conditions, ordered quantity (\`product_qty\`), unit price, discount, tax configuration and invoice policy.
+A purchase order, represented by `purchase.order` and `purchase.order.line`, records the commercial agreement. The source investigation located `button_confirm()`, approval conditions, ordered quantity (`product_qty`), unit price, discount, tax configuration and invoice policy.
 
-**Key source:** \`purchase/models/purchase_order.py\`, \`purchase/models/purchase_order_line.py\`.
+**Key source:** `purchase/models/purchase_order.py`, `purchase/models/purchase_order_line.py`.
 
 ### 2. Physical receipt
 
-The installed \`purchase_stock\` addon extends purchase models. Its purchase approval path invokes \`_create_picking()\`; stock movements and receipts are represented by \`stock.move\` and \`stock.picking\`.
+The installed `purchase_stock` addon extends purchase models. Its purchase approval path invokes `_create_picking()`; stock movements and receipts are represented by `stock.move` and `stock.picking`.
 
 Receiving quantity involves qualifying completed stock moves, returns and unit-of-measure conversion, with exceptional handling for manual receipt quantities and dropshipping. **It is not safe to infer receipt solely from ordered quantity or a picking existing.**
 
-**Key source:** \`purchase_stock/models/purchase_order.py\`, \`purchase_stock/models/purchase_order_line.py\`, \`stock/models/stock_move.py\`.
+**Key source:** `purchase_stock/models/purchase_order.py`, `purchase_stock/models/purchase_order_line.py`, `stock/models/stock_move.py`.
 
 ### 3. Vendor billing and credit notes
 
-Vendor bills are accounting documents (\`account.move\`), while bill lines are journal-line records (\`account.move.line\`). The purchase-line relationship may be represented by \`purchase_line_id\`. Invoiced quantity reflects qualifying bill lines and supplier credits/refunds under Odoo's rules.
+Vendor bills are accounting documents (`account.move`), while bill lines are journal-line records (`account.move.line`). The purchase-line relationship may be represented by `purchase_line_id`. Invoiced quantity reflects qualifying bill lines and supplier credits/refunds under Odoo's rules.
 
-**Key source:** \`account/models/account_move.py\`, \`account/models/account_move_line.py\`, \`purchase/models/purchase_order_line.py\`.
+**Key source:** `account/models/account_move.py`, `account/models/account_move_line.py`, `purchase/models/purchase_order_line.py`.
 
 ### 4. Pricing, tax and currency
 
-\`account.move.line._compute_totals()\` delegates to tax-base preparation and \`account.tax\` calculations and rounding. Discounts, UoM normalization, tax inclusivity, fiscal positions and currency conversion can affect the apparent difference between PO, receipt and invoice.
+`account.move.line._compute_totals()` delegates to tax-base preparation and `account.tax` calculations and rounding. Discounts, UoM normalization, tax inclusivity, fiscal positions and currency conversion can affect the apparent difference between PO, receipt and invoice.
 
-**Key source:** \`account/models/account_move_line.py\` and related tax/currency models. Detailed trace: [framework map](docs/architecture/ODOO19_FRAMEWORK_MAP.md).
+**Key source:** `account/models/account_move_line.py` and related tax/currency models. Detailed trace: [framework map](docs/architecture/ODOO19_FRAMEWORK_MAP.md).
 
 ### 5. Posting and ledger entries
 
-Posting through \`account.move.action_post()\` and \`_post()\` is subject to model and explicit access checks, balancing and fiscal-period restrictions. A database row or draft vendor bill does **not** prove a posted financial obligation.
+Posting through `account.move.action_post()` and `_post()` is subject to model and explicit access checks, balancing and fiscal-period restrictions. A database row or draft vendor bill does **not** prove a posted financial obligation.
 
-Journal lines carry \`debit\`, \`credit\`, \`balance\` and \`amount_currency\` values, while receivable/payable obligations introduce maturity and residual calculations.
+Journal lines carry `debit`, `credit`, `balance` and `amount_currency` values, while receivable/payable obligations introduce maturity and residual calculations.
 
 ### 6. Payments and reconciliation
 
@@ -94,16 +94,16 @@ Payment registration, payment posting and matching are separate operations. Part
 
 ### 7. System-wide controls
 
-- **Security:** \`ir.model.access\`, \`ir.rule\`, groups, company checks, \`sudo()\`, \`with_company()\` and explicit posting checks.
+- **Security:** `ir.model.access`, `ir.rule`, groups, company checks, `sudo()`, `with_company()` and explicit posting checks.
 - **Fiscal controls:** fiscal-year, tax, sale, purchase and hard lock dates, with configured exceptions.
-- **Reporting:** base \`account.report\` definitions were found even though separately named reporting addons were absent from inspected paths.
+- **Reporting:** base `account.report` definitions were found even though separately named reporting addons were absent from inspected paths.
 - **Assets:** asset-type account classifications were present, but the dedicated depreciation addon was not available in the inspected installation.
 
 These are **installation-scoped observations**, not statements about all Odoo editions or configurations.
 
 ## Source architecture and data paths
 
-\`\`\`text
+```text
 Odoo request / job / CLI / integration
    |
    +-- HTTP, actions and scheduling
@@ -115,20 +115,20 @@ Odoo request / job / CLI / integration
    |   +-- account
    +-- access rights, record rules, fiscal and company constraints
    +-- PostgreSQL transaction, tables, relations and constraints
-\`\`\`
+```
 
 Important inspected models and database mappings:
 
 | Business object | Model | Physical table |
 |---|---|---|
-| Purchase order | \`purchase.order\` | \`purchase_order\` |
-| Purchase line | \`purchase.order.line\` | \`purchase_order_line\` |
-| Stock movement | \`stock.move\` | \`stock_move\` |
-| Vendor bill / journal entry | \`account.move\` | \`account_move\` |
-| Invoice / journal line | \`account.move.line\` | \`account_move_line\` |
-| Payment | \`account.payment\` | \`account_payment\` |
-| Accounting security | \`ir.model.access\`, \`ir.rule\` | \`ir_model_access\`, \`ir_rule\` |
-| Company settings | \`res.company\` | \`res_company\` |
+| Purchase order | `purchase.order` | `purchase_order` |
+| Purchase line | `purchase.order.line` | `purchase_order_line` |
+| Stock movement | `stock.move` | `stock_move` |
+| Vendor bill / journal entry | `account.move` | `account_move` |
+| Invoice / journal line | `account.move.line` | `account_move_line` |
+| Payment | `account.payment` | `account_payment` |
+| Accounting security | `ir.model.access`, `ir.rule` | `ir_model_access`, `ir_rule` |
+| Company settings | `res.company` | `res_company` |
 
 Model declarations, computed fields, ORM SQL views and relation tables do not always map one-to-one. See the [full architecture map](docs/architecture/ODOO19_FRAMEWORK_MAP.md).
 
@@ -189,6 +189,6 @@ See [research methodology](docs/RESEARCH_METHODOLOGY.md).
 This is a **public** repository. Do not commit credentials, private database dumps, local capture paths containing personal data, Odoo filestore contents, production configurations, or the large reconstructed framework/ZIP. Preserve those privately with checksums. The full installed Odoo code is better obtained from its upstream sources under the applicable licenses; this repository preserves selected historical snapshots and independent analysis.
 
 Upstream: https://github.com/odoo/odoo  
-Research source baseline recorded: \`7c45959e02b2d8abc52913184237b72f7bae93a2\` (per-file/local-image revision equivalence has not been independently established).
+Research source baseline recorded: `7c45959e02b2d8abc52913184237b72f7bae93a2` (per-file/local-image revision equivalence has not been independently established).
 
 **Independent research — not affiliated with or endorsed by Odoo S.A.** This repository is a research foundation, not a certification of Odoo security or ProofFlow production readiness.
