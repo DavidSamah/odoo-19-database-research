@@ -2,7 +2,7 @@
 
 **Scope:** Architecture and accounting workflow explanation grounded in the ProofFlow/Odoo source-research record, supplemented by **Odoo 19 official developer documentation** for uninspected framework internals.  
 **Research context:** 6 November 2026.  
-**This is a conceptual map, not a claim of completed runtime testing or a full independent reverse-engineering of 60,706 source files The complete run-time testing would be validated after deploying the application.**
+**This is a conceptual map, not a claim of completed runtime testing or a full independent reverse-engineering of 60,706 source files The complete run-time testing would be validated after deploying the ProofFlow application.**
 
 ## Evidence key and interpretation rule
 
