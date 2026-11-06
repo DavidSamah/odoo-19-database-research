@@ -7,3 +7,18 @@
 *.log
 audit/evidence/raw/
 secrets/
+# Local reconstruction archives and working evidence (private)
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+*.patch
+odoo19_recovery_outputs/
+Odoo19_Commit_Reconstruction/
+Odoo19_Reconciled_Research_Record/
+ProofFlow_Odoo19_Research_Source_Mirror/
+Odoo19_Private_Capture/
+*.partial
+__pycache__/
+*.pyc
