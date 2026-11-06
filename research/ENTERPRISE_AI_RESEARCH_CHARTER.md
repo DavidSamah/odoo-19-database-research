@@ -32,18 +32,23 @@
 
 ## 3. Research stages (strict order)
 
+Our research first reconstructs the **evolution of AI over time**, because each breakthrough changed not only what a model could do but what engineers had to build around it. We will compare contemporaneous problems, methods, resources, software integration interfaces, adoption constraints, failures, and the next technology that responded. Later stages identify persistent friction and attempt original contributions. No technological progress is assumed to be linear or inevitable.
+
 | Stage | Research question | Required evidence/output | Exit criterion |
 |---|---|---|---|
-| 0. Scope and governance | What constitutes new AI-integration technology and credible research? | Updated charter and branch provenance | Researcher approves revised scope |
-| 1. Integration friction | Which engineering tasks make integrating real AI models into complex systems difficult? | Independent primary evidence, developer workflows, failure mechanisms and quantitative friction hypotheses | At least three distinct, grounded integration bottlenecks |
-| 2. Existing approaches | What do inference runtimes, ML frameworks, agent stacks, model-serving tools, ERP integrations and observability systems already solve? | Dated capability matrix with source citations and verified-vs-marketed distinctions | Existing solutions mapped without omission |
-| 3. Scientific prior art | What similar mechanisms exist in papers, standards, patents and open-source implementations? | Reproducible search log, overlaps and limitations | No unqualified "world first" claims |
-| 4. Candidate technical mechanism | Could a new abstraction or algorithm remove a documented bottleneck? | Multiple hypotheses, falsifiable predictions, interface sketch, correctness and safety invariants | Researcher selects one hypothesis |
-| 5. Technical feasibility | Can we safely test it with Odoo's ORM, permissions and local AI execution? | Dependency map, threat model, system constraints, test plan | All critical assumptions and access boundaries identified |
-| 6. Comparative experiments | Does it outperform credible existing integration methods? | Reproducible baselines, measured developer effort, performance, correctness, failure cases and ablations | Transparent acceptance or rejection of hypothesis |
-| 7. Research decision | Is it technically distinct, useful, reproducible, and worth building or publishing? | Evidence-weighted technical report and market implications | Researcher decides to iterate, develop, publish or reject |
+| 0. Scope and governance | What counts as trustworthy, time-aware AI history and a serious innovation claim? | Revised charter; historical-study protocol and source register | Scope recorded; researcher sets next checkpoint |
+| 1. Historical evolution of AI | How did AI's theory, architectures, compute, data, interfaces and integration approaches change from foundations through 2026? | Chronological primary-source register, dated milestone analyses, causes and limits, parallel traditions, contested narratives | Chronology and mechanisms corroborated; separate observations vs historical inferences |
+| 2. Persistent integration friction | Which hard integration problems persisted, disappeared or emerged through successive AI eras? | Cross-era bottleneck matrix, developer tasks, failure mechanisms, measurable baseline hypotheses | At least three independently grounded integration bottlenecks |
+| 3. Existing approaches | What do inference runtimes, ML frameworks, agent stacks, model serving, ERP integrations and observability already solve? | Dated capability matrix and primary citations | Existing techniques accounted for |
+| 4. Scientific and technical prior art | Which analogous techniques appear in papers, patents, standards and open-source systems? | Reproducible search logs, similarities, exclusions, uncertainty | No unsupported world-first claims |
+| 5. Candidate technical mechanism | Can a new abstraction, algorithm or architecture remove a historical or present bottleneck? | Multiple falsifiable hypotheses, invariants, technical design alternatives | Researcher selects an experiment |
+| 6. Odoo and broader feasibility | Can the idea work with Odoo 19's ORM, permissions, local model execution and an independent second host? | Dependency map, threat model, test requirements, generality limits | Critical unknowns exposed |
+| 7. Comparative experiments | Does it materially outperform rigorous baselines? | Replicable tests of developer time, complexity, correctness, security and performance | Evidence supports, limits or rejects hypothesis |
+| 8. Research decision | Is it distinctive, reproducible and worth pursuing academically or commercially? | Evidence-weighted paper-style report, risks and opportunities | Researcher decides iterate / develop / publish / reject |
 
-One numbered checkpoint at a time. Never advance merely because an idea sounds exciting.
+**Chronological evidence rule:** Record the date of invention, preprint, peer-reviewed publication, first deployment and broad adoption *separately*, wherever known. Avoid attributing a development to a single person or date without reviewing earlier work. Measure trends at several time scales and watch for cyclical or parallel developments (e.g., symbolic, statistical, neural and hybrid AI).
+
+One numbered checkpoint at a time. Do not move from an historical milestone to a new invention merely because an idea seems exciting.
 
 ## 4. Mandatory observation record
 
@@ -80,7 +85,9 @@ For each observation use this exact structure:
 
 ## 6. Initial research questions — not conclusions
 
-1. Why is running a model generally easier than integrating its behavior **correctly** with transactional business software?
+1. Historically, what did AI systems require from host software, domain experts, data and computing hardware at each major transition?
+2. Which assumptions and limitations of earlier generations of AI reappeared with new techniques?
+3. Why is running a model generally easier than integrating its behavior **correctly** with transactional business software?
 2. What bespoke integration "glue" repeats across applications: data types, permission boundaries, contextual state, verification and schema changes?
 3. Could a reusable mechanism derive safe constraints from an application's model metadata, workflows and invariants?
 4. How could local inference, model updates and continuous evaluation be integrated without compromising auditable business state?
@@ -92,13 +99,15 @@ For each observation use this exact structure:
 
 The `main` branch contains the archived Odoo 19 framework map, purchase-to-receipt research, nine accounting-domain indexes, privacy boundaries and ProofFlow business logic. Treat these as the **current foundation**, with each claim retaining its original evidence classification. The separate 60,706-file source-and-schema reconstruction remains private and is not copied into this public branch.
 
-## 8. Current log
+## 9. Current log
 
 | Checkpoint | Observation | Status |
 |---|---|---|
-| 0.1 | Created branch at `main` SHA `810f54f3f5a6d2546acc0b95e1e92fa3c56a730b` | GitHub creation verified |
-| 0.2 | Original scope: enterprise accounting AI opportunity, research-first | Historically recorded; superseded |
-| 0.3 | User revised aim: generate a genuinely new and scientifically interesting mechanism that makes real AI integration easier | Scope revision recorded; no research hypothesis selected |
-| 1.1 | Identify and document a measurable AI-integration bottleneck, with current tools and credible independent evidence | NOT STARTED |
+| 0.1 | Created branch at `main` SHA `810f54f3f5a6d2546acc0b95e1e92fa3c56a730b` | Verified |
+| 0.2 | Scope first established for enterprise accounting AI | Historic record; subsequently revised |
+| 0.3 | Scope revised to investigate original methods for easier, actual AI integration | Recorded |
+| 0.4 | User added deep, chronological research on AI's evolution as a **foundational prerequisite** | Recorded and charter updated |
+| 1.0 | Chronological research protocol and initial dated source register | Source selection complete; not a full literature review |
+| 1.1 | Historical foundations and causal turning points, beginning with early formal and symbolic AI | NOT STARTED IN DEPTH |
 
-**Next checkpoint:** Stage 1.1, integration-friction discovery. Start with one concrete engineering bottleneck and compare what existing systems do. No candidate technology is presumed, and this document does not authorize implementation.
+**Next checkpoint:** Stage 1.1, investigate AI's early foundations using original primary sources, including contemporaneous technical constraints and integration consequences. No invention or product implementation is approved.
