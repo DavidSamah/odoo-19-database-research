@@ -1,15 +1,24 @@
-# Enterprise Accounting Intelligence — Strict Research Charter
+# AI Integration Systems — Strict Research Charter
 
 **Branch:** `research/enterprise-ai-opportunities-2026`  
 **Baseline:** `main` at `810f54f3f5a6d2546acc0b95e1e92fa3c56a730b`  
 **Started:** 2026-11-06  
-**Status:** Stage 0 — branch and method established; no product concept approved.
+**Status:** Stage 0 scope revised — generalizable AI-integration research; no invention or application approved.
+
 
 ## 1. Objective and boundary
 
-Identify, test, and prioritize an enterprise-grade opportunity for **native Odoo accounting intelligence**, informed by the verified ProofFlow/Odoo 19 architectural research. The eventual aspiration is meaningful global commercial value, but **market size, novelty, feasibility, sales traction, and company value are currently unverified**. Do not claim that nobody has attempted a feature until there is supporting evidence; even a thorough search cannot prove global firstness.
+**Primary research aim:** Discover, rigorously characterize, and experimentally validate a **potentially original technical mechanism that makes actual AI integration substantially easier** for engineers working with complex, stateful software systems. The intended intellectual depth is that of a publishable computer-science or software-engineering contribution capable of sustaining serious review by advanced AI researchers and engineers (including researchers at institutions such as Harvard). This is an **ambition, not a claim of novelty, institutional interest, endorsement, or future commercial success**.
 
-This is a **research branch**, not an implementation branch. Do not alter `main`, production accounting records, the preserved research database, Odoo's original source code, or the separately retained integrity-verified source archive.
+**"Actual AI integration" includes:** Model execution and lifecycle—model choice or training, inference, data interfaces, access controls, evaluation, observability, updates, debugging, and reproducibility. We are **not** limiting this effort to an external AI API, prompt wrapper, or chatbot feature. Local/self-hosted models are an important target; alternatives must still be compared fairly.
+
+**"Easier" means measurable improvement:** Less time to integrate a model correctly, less bespoke glue code, lower debugging and upgrade effort, simpler deployment and model substitution, **without unacceptable losses** in security, correctness, latency, cost, or auditability. Establish baselines and conditions for failure before making improvement claims.
+
+**Relation to existing Odoo research:** Odoo 19—its modular addons, registry/ORM, PostgreSQL transactions, permissions, and accounting workflows—is our **primary engineering testbed**. A strong research contribution might generalize to other business applications, but applicability beyond Odoo must be demonstrated, not presumed.
+
+**Secondary aim:** Investigate whether a validated mechanism can underpin ProofFlow, a native Odoo addon, or a broader developer platform. Enterprise revenue potential is a later test, not a substitute for technical novelty.
+
+**Boundary:** This is a public research branch, not an implementation or deployment branch. Nothing here authorizes changing `main`, production records, Odoo's original source, or the preserved source archive. No feature design is approved in advance; global originality and Harvard researchers' interest are not claims we can currently verify.
 
 ## 2. User authority and pacing
 
@@ -20,20 +29,21 @@ This is a **research branch**, not an implementation branch. Do not alter `main`
 - Keep all historical source observations and timestamps intact. Distinguish prior records from new research.
 - Keep private business data, credentials, database dumps, unreleased models, sensitive transcripts and customer data out of this **public** Git repository.
 
+
 ## 3. Research stages (strict order)
 
-| Stage | Question | Required evidence/output | Exit criterion |
+| Stage | Research question | Required evidence/output | Exit criterion |
 |---|---|---|---|
-| 0. Governance and scope | What are we studying and under what constraints? | This charter; branch provenance | Researcher agrees to scope |
-| 1. Enterprise pain | Which accounting-control failures are costly, frequent and unsolved? | Problem register with independent evidence, affected roles, current workarounds and measurable consequences | At least three concrete problems verified; no unsupported global statistics |
-| 2. Existing products | What do Odoo, SAP, Oracle and specialists already offer? | Dated competitor/capability matrix with primary citations and implementation caveats | Distinguish documented functionality from untested marketing |
-| 3. Research and prior art | Have similar approaches appeared in papers, code, patents or product descriptions? | Search query log, source/date inventory, feature-by-feature comparison, novelty uncertainty | Avoid absolute novelty claims |
-| 4. Technical feasibility | Can we build a safe Odoo-native addon and local model? | Exact model/method interfaces, permissions, dataset needs, resource requirements, integration and legal risks | Main dependencies and critical unknowns traced |
-| 5. Economic test | Would a large enterprise buy and safely operate it? | Buyer, adoption blockers, competitive substitutes, bounded ROI scenarios and assumptions | Numbers are sourced or explicitly hypothetical |
-| 6. Experiment design | What is the smallest falsifiable test? | Synthetic cases, baselines, acceptance criteria, false-positive costs, verification design | Researcher approves test design |
-| 7. Decision | What should we build, postpone or reject? | Evidence-weighted decision memorandum, unresolved contradictions and next action | No development until explicitly approved |
+| 0. Scope and governance | What constitutes new AI-integration technology and credible research? | Updated charter and branch provenance | Researcher approves revised scope |
+| 1. Integration friction | Which engineering tasks make integrating real AI models into complex systems difficult? | Independent primary evidence, developer workflows, failure mechanisms and quantitative friction hypotheses | At least three distinct, grounded integration bottlenecks |
+| 2. Existing approaches | What do inference runtimes, ML frameworks, agent stacks, model-serving tools, ERP integrations and observability systems already solve? | Dated capability matrix with source citations and verified-vs-marketed distinctions | Existing solutions mapped without omission |
+| 3. Scientific prior art | What similar mechanisms exist in papers, standards, patents and open-source implementations? | Reproducible search log, overlaps and limitations | No unqualified "world first" claims |
+| 4. Candidate technical mechanism | Could a new abstraction or algorithm remove a documented bottleneck? | Multiple hypotheses, falsifiable predictions, interface sketch, correctness and safety invariants | Researcher selects one hypothesis |
+| 5. Technical feasibility | Can we safely test it with Odoo's ORM, permissions and local AI execution? | Dependency map, threat model, system constraints, test plan | All critical assumptions and access boundaries identified |
+| 6. Comparative experiments | Does it outperform credible existing integration methods? | Reproducible baselines, measured developer effort, performance, correctness, failure cases and ablations | Transparent acceptance or rejection of hypothesis |
+| 7. Research decision | Is it technically distinct, useful, reproducible, and worth building or publishing? | Evidence-weighted technical report and market implications | Researcher decides to iterate, develop, publish or reject |
 
-Do not advance stages solely because a search returned useful-looking results. Record the outcome and approval at each stage.
+One numbered checkpoint at a time. Never advance merely because an idea sounds exciting.
 
 ## 4. Mandatory observation record
 
@@ -51,27 +61,32 @@ For each observation use this exact structure:
 - **Decision and next single action**
 - **Publication review:** public-safe or private evidence
 
+
 ## 5. Non-negotiable evaluation criteria
 
-1. **Actual enterprise loss or friction:** measurable cost, delay, control failure or audit exposure.
-2. **Existing alternative:** can Odoo or an incumbent already solve this adequately?
-3. **Differentiation:** exact mechanism and evidence, not just the term "AI".
-4. **Correctness:** accounting calculations remain rule-based and auditable.
-5. **Safety and governance:** identity, company isolation, fiscal locks, human authority, transaction integrity and data residency.
-6. **Model validity:** dataset provenance, reproducibility, calibration, false positives, false negatives and concept drift.
-7. **Economic feasibility:** compute/storage expense, deployment complexity, sales cycles and customer maintenance.
-8. **Verifiable outcomes:** what would count as a failed hypothesis?
-9. **Defensibility:** proprietary data advantage, switching cost, network effects, integration depth or other evidenced advantage; not assumed.
-10. **Scope discipline:** start with one well-defined use case, without inventing platform-wide success.
+1. **Engineering friction:** Specify the integration task, affected developers, and measurable difficulty.
+2. **Existing solutions:** Compare to current model-serving, training, orchestration and application-integration systems.
+3. **Technical distinctiveness:** Describe the exact mechanism, prior-art overlaps and uncertain novelty.
+4. **Actual AI functionality:** Address the model lifecycle, not merely a hosted API call.
+5. **State and correctness:** Respect ORM invariants, transaction boundaries and deterministic accounting rules.
+6. **Safety and privacy:** Permissions, company isolation, secrets, data boundaries, privileged tools and attack surfaces.
+7. **Developer experience:** Time-to-correct-inference, lines of glue code, setup steps, fault diagnosis and upgrade friction.
+8. **Model reliability:** Evaluation design, calibration, reproducibility, false positives, regressions, drift.
+9. **Systems feasibility:** Latency, throughput, CPU/GPU/RAM usage, deployment and maintenance burden.
+10. **Generality:** Test a second independent host application rather than assume transferability from Odoo.
+11. **Research rigor:** Control/baseline, falsifiable hypothesis, reproducible procedure, failure cases and limitations.
+12. **Commercial impact (secondary):** Independently assess actual enterprise adoption barriers and willingness to pay.
+
 
 ## 6. Initial research questions — not conclusions
 
-1. Which enterprise accounting decisions remain expensive to **verify** even after automation?
-2. Where do audit evidence, approvals, source transactions and financial consequences become disconnected?
-3. What could a local inference model identify that deterministic Odoo checks cannot?
-4. Could a model produce advice while a separate deterministic engine proves the proposed outcome?
-5. What comparable capabilities already exist in products, research, or patents?
-6. Why would a CFO, controller, AP manager or internal auditor purchase this instead of extending existing software?
+1. Why is running a model generally easier than integrating its behavior **correctly** with transactional business software?
+2. What bespoke integration "glue" repeats across applications: data types, permission boundaries, contextual state, verification and schema changes?
+3. Could a reusable mechanism derive safe constraints from an application's model metadata, workflows and invariants?
+4. How could local inference, model updates and continuous evaluation be integrated without compromising auditable business state?
+5. Which existing frameworks, papers, patent claims and repositories already approach these questions?
+6. Which integration tasks can be quantified in Odoo 19 and replicated against a second independent system?
+7. What empirical outcome would falsify the claim of significantly easier AI integration?
 
 ## 7. Reuse of existing findings
 
@@ -81,8 +96,9 @@ The `main` branch contains the archived Odoo 19 framework map, purchase-to-recei
 
 | Checkpoint | Observation | Status |
 |---|---|---|
-| 0.1 | Created branch from observed current `main` SHA `810f54f3f5a6d2546acc0b95e1e92fa3c56a730b` | Verified by GitHub branch creation |
-| 0.2 | Defined research stages, evidence rules, privacy and user approval boundaries | Recorded in this charter |
-| 1.1 | Identify and source the first enterprise accounting pain point | NOT STARTED |
+| 0.1 | Created branch at `main` SHA `810f54f3f5a6d2546acc0b95e1e92fa3c56a730b` | GitHub creation verified |
+| 0.2 | Original scope: enterprise accounting AI opportunity, research-first | Historically recorded; superseded |
+| 0.3 | User revised aim: generate a genuinely new and scientifically interesting mechanism that makes real AI integration easier | Scope revision recorded; no research hypothesis selected |
+| 1.1 | Identify and document a measurable AI-integration bottleneck, with current tools and credible independent evidence | NOT STARTED |
 
-**Next checkpoint:** Stage 1.1, one enterprise pain-point hypothesis and its independently retrieved evidence. This document authorizes research only—not implementation.
+**Next checkpoint:** Stage 1.1, integration-friction discovery. Start with one concrete engineering bottleneck and compare what existing systems do. No candidate technology is presumed, and this document does not authorize implementation.
